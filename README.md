@@ -4,7 +4,7 @@ A GUI for analyzing Pandas DataFrames.
 
 ## Demo
 
-[![PandasGUI Demo](https://yt-embed.herokuapp.com/embed?v=NKXdolMxW2Y)](https://www.youtube.com/watch?v=NKXdolMxW2Y "PandasGUI Demo")
+[![PandasGUI Demo](https://i.imgur.com/u3BzdoS.png)](https://www.youtube.com/watch?v=NKXdolMxW2Y "PandasGUI Demo")
 
 ## Installation
 
@@ -27,23 +27,16 @@ Create and view a simple DataFrame
 ```python
 import pandas as pd
 from pandasgui import show
-
 df = pd.DataFrame(([[1, 2, 3], [4, 5, 6], [7, 8, 9]]), columns=['a', 'b', 'c'])
 show(df)
 ```
 
-Or if you are running your code as a script instead of in IPython, you will need to block execution until you close the GUI
-
-```python
-show(df, settings={'block': True})
-```
-
-PandasGUI comes with sample datasets that will download on first use. You can also import `all_datasets` which is a dictionary of all the sample datasets
+PandasGUI comes with sample datasets that will download on first use.   
+You can also import `all_datasets` which is a dictionary of all the sample datasets
 
 ```python
 from pandasgui import show
 from pandasgui.datasets import pokemon, titanic, all_datasets
-show(pokemon, titanic)
 show(**all_datasets)
 ```
 
@@ -59,8 +52,8 @@ show(**all_datasets)
 
 ## More Info
 
-This project is still in version 0.x.y and subject to breaking changes. Latest changes will be on the `develop` branch, and will be occasionally merged to `master` as a release with a tag indicating the version number, and published to PyPi.
+**Issues, feedback and pull requests are welcome.**
 
-Issues, feedback and pull requests are welcome.
+This project is still in version 0.x.y and subject to breaking changes. Latest changes will be on the `develop` branch, and will be occasionally merged to `master` as a release with a tag indicating the version number, and published to PyPi.
 
 Remember to leave a ⭐ if you like this!

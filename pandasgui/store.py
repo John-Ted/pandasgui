@@ -7,8 +7,9 @@ from PyQt5.QtCore import Qt
 import traceback
 from functools import wraps
 from datetime import datetime
-from pandasgui.utility import get_logger, unique_name
+from pandasgui.utility import get_logger, unique_name, in_interactive_console
 import os
+import collections
 
 logger = get_logger(__name__)
 
@@ -16,9 +17,20 @@ logger = get_logger(__name__)
 @dataclass
 class Settings:
     # Should GUI block code execution until closed
-    block: bool = False
+    block: bool
     # Are table cells editable
     editable: bool = True
+    style: str = "Fusion"
+
+    def __init__(self, block=None):
+        # Default blocking behavior
+        if block is None:
+            if in_interactive_console():
+                # Don't block if in an interactive console (so you can view GUI and still continue running commands)
+                self.block = False
+            else:
+                # If in a script, we need to block or the script will continue and finish without allowing GUI interaction
+                self.block = True
 
 
 @dataclass
@@ -219,11 +231,14 @@ class PandasGuiDataFrame:
 
 @dataclass
 class Store:
-    settings: Settings = Settings()
+    settings: Union["Settings", None] = None
     data: List[PandasGuiDataFrame] = field(default_factory=list)
     gui: Union["PandasGui", None] = None
     navigator: Union["Navigator", None] = None
     selected_pgdf: Union[PandasGuiDataFrame, None] = None
+
+    def __post_init__(self):
+        self.settings = Settings()
 
     def add_dataframe(self, pgdf: Union[DataFrame, PandasGuiDataFrame],
                       name: str = "Untitled"):

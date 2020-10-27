@@ -34,27 +34,27 @@ refs = []
 
 
 class PandasGui(QtWidgets.QMainWindow):
-    def __init__(self, settings: dict = None, **kwargs):
+    def __init__(self, settings: dict = {}, **kwargs):
         """
         Args:
             settings: Dict of settings, as defined in pandasgui.store.Settings
             kwargs: Dict of DataFrames where key is name & val is the DataFrame object
         """
-        if settings is None:
-            settings = {}
-
         refs.append(self)
-        self.app = QtWidgets.QApplication.instance() or QtWidgets.QApplication(sys.argv)
+
         self.store = Store()
         self.store.gui = self
+        # Add user provided settings to data store
+        for key, value in settings.items():
+            setattr(self.store.settings, key, value)
+
+        self.app = QtWidgets.QApplication.instance() or QtWidgets.QApplication(sys.argv)
+        if self.store.settings.style in QtWidgets.QStyleFactory.keys():
+            self.app.setStyle(self.store.settings.style)
 
         super().__init__()
         self.init_app()
         self.init_ui()
-
-        # Add user provided settings to data store
-        for key, value in settings.items():
-            setattr(self.store.settings, key, value)
 
         # Adds DataFrames listed in kwargs to data store.
         for df_name, df in kwargs.items():
@@ -151,20 +151,7 @@ class PandasGui(QtWidgets.QMainWindow):
                            MenuItem(name='Delete local data',
                                     func=delete_datasets),
 
-
-                           ],
-                 'Set Style': []}
-
-        # Add an option to the menu for each GUI style that exist for the user's system
-        for ix, style in enumerate(QtWidgets.QStyleFactory.keys()):
-            items['Set Style'].append(
-                MenuItem(name=style,
-                         func=lambda _, s=style: self.app.setStyle(s),
-                         )
-            )
-
-            # Set the default style to the last in the options
-            self.app.setStyle(QtWidgets.QStyleFactory.keys()[-1])
+                           ]}
 
         # Add menu items and actions to UI using the schema defined above
         for menu_name in items.keys():
@@ -174,6 +161,18 @@ class PandasGui(QtWidgets.QMainWindow):
                 action.setShortcut(x.shortcut)
                 action.triggered.connect(x.func)
                 menu.addAction(action)
+
+        # Add an extra option list to the menu for each GUI style that exist for the user's system
+        styleMenu = menubar.addMenu("&Set Style")
+        styleGroup = QtWidgets.QActionGroup(styleMenu)
+        for style in QtWidgets.QStyleFactory.keys():
+            styleAction = QtWidgets.QAction(f"&{style}", self, checkable=True)
+            styleAction.triggered.connect(lambda _, s=style: self.app.setStyle(s))
+            styleGroup.addAction(styleAction)
+            styleMenu.addAction(styleAction)
+
+            if self.app.style().objectName().lower() == style.lower():
+                styleAction.trigger()
 
     def dropEvent(self, e):
         if e.mimeData().hasUrls:
@@ -236,8 +235,9 @@ class PandasGui(QtWidgets.QMainWindow):
         path, _ = dialog.getSaveFileName(directory=pgdf.name, filter="*.csv")
         pgdf.dataframe.to_csv(path, index=False)
 
+
 def show(*args,
-         settings: dict = {},
+         settings={},
          **kwargs):
     # Get the variable names in the scope show() was called from
     callers_local_vars = inspect.currentframe().f_back.f_locals.items()
